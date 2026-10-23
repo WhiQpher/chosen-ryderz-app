@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chosen Ryderz MC Preview</title><style>
+:root{--bg:#080e0a;--panel:#183020;--fg:#f5fff6;--accent:#6aeb8a}body.day{--bg:#edf7ee;--panel:#fff;--fg:#142519;--accent:#167c38}body.steel{--bg:#131b23;--panel:#283847;--fg:#fff;--accent:#8de3a4}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:17px system-ui,Arial;margin:0}.wrap{max-width:550px;margin:auto;padding:18px}h1{font-size:27px;margin:22px 0 6px}.sub{opacity:.75;margin-bottom:22px}.tile{display:block;width:100%;padding:22px 18px;margin:12px 0;border-radius:16px;background:var(--panel);color:var(--fg);border:1px solid var(--accent);text-align:left;font:700 20px system-ui;cursor:pointer}.tile small{display:block;font-size:14px;font-weight:400;margin:7px 0 0;opacity:.8}.panel{background:var(--panel);border-radius:14px;padding:18px;margin:15px 0;line-height:1.5}.back{background:var(--accent);border:0;padding:12px;border-radius:9px;font-weight:700}select{background:var(--panel);color:var(--fg);border:1px solid var(--accent);padding:8px;border-radius:9px}#detail{display:none}.note{font-size:13px;opacity:.75;margin:24px 0}
+</style></head><body><div class="wrap"><div style="font-weight:900;color:var(--accent);letter-spacing:1px">🏍 CHOSEN RYDERZ MC</div><h1>Welcome, Ryder</h1><div class="sub">Brandywine Chapter · App Preview</div>
+<main id="home"><h2>Chapter Dashboard</h2>
+<button class="tile" onclick="openSection(0)">👥 Membership<small>Members and chapter roster</small></button>
+<button class="tile" onclick="openSection(1)">💳 Dues<small>Membership dues and status</small></button>
+<button class="tile" onclick="openSection(2)">📅 Events<small>Rides, meetings, and activities</small></button>
+<button class="tile" onclick="openSection(3)">📣 Announcements<small>Latest chapter updates</small></button>
+<button class="tile" onclick="openSection(4)">📁 Documents<small>Bylaws, forms, and files</small></button>
+<button class="tile" onclick="openSection(5)">🛡️ Officer Tools<small>Chapter management</small></button>
+<div class="panel">Appearance: <select onchange="document.body.className=this.value"><option value="">Night Ride</option><option value="day">Day Ride</option><option value="steel">Steel Ride</option></select></div></main>
+<section id="detail"><button class="back" onclick="goBack()">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div></section>
+<div class="note">Interactive concept only. Sample content; no live accounts, payments, or server connection.</div></div>
+<script>
+var data=[
+['Membership','View chapter roster, road names, and membership status.','Sample roster: President · Vice President · Secretary · Treasurer · Road Captain · Member'],
+['Dues','Track membership dues and payment status.','Demo only — no actual payments.'],
+['Events','Plan club rides, meetings, and activities.','Sample: Saturday chapter ride · 10 AM · Meeting location TBD'],
+['Announcements','Share news and updates with chapter members.','Welcome to the Chosen Ryderz MC app preview!'],
+['Documents','Keep bylaws, forms, and chapter files together.','Sample folders: Bylaws · Meeting Notes · Forms'],
+['Officer Tools','Officer-only chapter administration tools.','Officer permissions will be added when sign-in is connected.']
+];function openSection(i){document.getElementById('sectionTitle').textContent=data[i][0];document.getElementById('sectionText').textContent=data[i][1];document.getElementById('sectionExample').textContent=data[i][2];document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';window.scrollTo(0,0)}function goBack(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block';window.scrollTo(0,0)}
+</script></body></html>
