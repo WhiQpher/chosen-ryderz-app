@@ -22,3 +22,12 @@ var data=[
 ['Officer Tools','Officer-only chapter administration tools.','Officer permissions will be added when sign-in is connected.']
 ];function openSection(i){document.getElementById('sectionTitle').textContent=data[i][0];document.getElementById('sectionText').textContent=data[i][1];document.getElementById('sectionExample').textContent=data[i][2];document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';window.scrollTo(0,0)}function goBack(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block';window.scrollTo(0,0)}
 </script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.ryderzDB = window.supabase.createClient(
+    'https://cfqafjcdbnekufijmlco.supabase.co',
+    'sb_publishable_ipaK8g52meOFsUyh9IFTEQ_lgnIn5m8'
+  );
+</script>
+</body>
+</html>
