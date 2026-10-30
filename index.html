@@ -1,8 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chosen Ryderz MC Preview</title><style>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chosen Ryderz MC</title>
+<style>
 :root{--bg:#080e0a;--panel:#183020;--fg:#f5fff6;--accent:#6aeb8a}body.day{--bg:#edf7ee;--panel:#fff;--fg:#142519;--accent:#167c38}body.steel{--bg:#131b23;--panel:#283847;--fg:#fff;--accent:#8de3a4}
-*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:17px system-ui,Arial;margin:0}.wrap{max-width:550px;margin:auto;padding:18px}h1{font-size:27px;margin:22px 0 6px}.sub{opacity:.75;margin-bottom:22px}.tile{display:block;width:100%;padding:22px 18px;margin:12px 0;border-radius:16px;background:var(--panel);color:var(--fg);border:1px solid var(--accent);text-align:left;font:700 20px system-ui;cursor:pointer}.tile small{display:block;font-size:14px;font-weight:400;margin:7px 0 0;opacity:.8}.panel{background:var(--panel);border-radius:14px;padding:18px;margin:15px 0;line-height:1.5}.back{background:var(--accent);border:0;padding:12px;border-radius:9px;font-weight:700}select{background:var(--panel);color:var(--fg);border:1px solid var(--accent);padding:8px;border-radius:9px}#detail{display:none}.note{font-size:13px;opacity:.75;margin:24px 0}
-</style></head><body><div class="wrap"><div style="font-weight:900;color:var(--accent);letter-spacing:1px">🏍 CHOSEN RYDERZ MC</div><h1>Welcome, Ryder</h1><div class="sub">Brandywine Chapter · App Preview</div>
-<main id="home"><h2>Chapter Dashboard</h2>
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:17px system-ui,Arial;margin:0}.wrap{max-width:550px;margin:auto;padding:18px}h1{font-size:27px;margin:22px 0 6px}.sub{opacity:.75;margin-bottom:22px}.tile{display:block;width:100%;padding:22px 18px;margin:12px 0;border-radius:16px;background:var(--panel);color:var(--fg);border:1px solid var(--accent);text-align:left;font:700 20px system-ui;cursor:pointer}.tile small{display:block;font-size:14px;font-weight:400;margin:7px 0 0;opacity:.8}.panel{background:var(--panel);border-radius:14px;padding:18px;margin:15px 0;line-height:1.5}.back,.action{background:var(--accent);border:0;padding:12px;border-radius:9px;font-weight:700;cursor:pointer}select,input{background:var(--panel);color:var(--fg);border:1px solid var(--accent);padding:11px;border-radius:9px;width:100%;font:inherit}label{display:block;margin:12px 0 6px}#app,#detail,#officerAdmin{display:none}.note{font-size:13px;opacity:.8;margin:24px 0}.error{color:#ffb0b0}.status{min-height:1.5em}.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}.topbar button{font-size:14px}.small{font-size:14px;opacity:.85}
+</style></head><body><div class="wrap"><div class="topbar"><strong style="color:var(--accent)">🏍 CHOSEN RYDERZ MC</strong><button id="logout" class="back" hidden>Log out</button></div>
+<section id="login" class="panel"><h1>Member Sign In</h1><p class="small">Brandywine Chapter • Authorized accounts only</p><form id="loginForm"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><p><button id="signin" class="action" type="submit">Sign in</button></p></form><p id="loginStatus" class="status" role="status"></p><p class="note">Accounts are created or invited by chapter administration. Public sign-up is not available.</p></section>
+<div id="app"><h1>Welcome, Ryder</h1><div class="sub">Brandywine Chapter</div><main id="home"><h2>Chapter Dashboard</h2>
 <button class="tile" onclick="openSection(0)">👥 Membership<small>Members and chapter roster</small></button>
 <button class="tile" onclick="openSection(1)">💳 Dues<small>Membership dues and status</small></button>
 <button class="tile" onclick="openSection(2)">📅 Events<small>Rides, meetings, and activities</small></button>
@@ -10,24 +13,29 @@
 <button class="tile" onclick="openSection(4)">📁 Documents<small>Bylaws, forms, and files</small></button>
 <button class="tile" onclick="openSection(5)">🛡️ Officer Tools<small>Chapter management</small></button>
 <div class="panel">Appearance: <select onchange="document.body.className=this.value"><option value="">Night Ride</option><option value="day">Day Ride</option><option value="steel">Steel Ride</option></select></div></main>
-<section id="detail"><button class="back" onclick="goBack()">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div></section>
-<div class="note">Interactive concept only. Sample content; no live accounts, payments, or server connection.</div></div>
+<section id="detail"><button class="back" onclick="goBack()">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div><div id="officerAdmin" class="panel"><strong>President's Control Panel — preview</strong><p>Administrator status verified. Account invitations, editing permissions, and audit history are not yet implemented.</p></div></section>
+<div class="note">Authenticated preview only. No live dues, document storage, or member management yet. Do not enter confidential member information.</div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-var data=[
-['Membership','View chapter roster, road names, and membership status.','Sample roster: President · Vice President · Secretary · Treasurer · Road Captain · Member'],
+'use strict';
+const URL='https://cfqafjcdbnekufijmlco.supabase.co';
+const KEY='sb_publishable_ipaK8g52meOFsUyh9IFTEQ_lgnIn5m8';
+const login=document.getElementById('login'),app=document.getElementById('app'),logout=document.getElementById('logout'),status=document.getElementById('loginStatus');
+let db=null,admin=false;
+const data=[
+['Membership','View chapter roster, road names, and membership status.','Sample roster only — no real member data loaded.'],
 ['Dues','Track membership dues and payment status.','Demo only — no actual payments.'],
 ['Events','Plan club rides, meetings, and activities.','Sample: Saturday chapter ride · 10 AM · Meeting location TBD'],
 ['Announcements','Share news and updates with chapter members.','Welcome to the Chosen Ryderz MC app preview!'],
 ['Documents','Keep bylaws, forms, and chapter files together.','Sample folders: Bylaws · Meeting Notes · Forms'],
-['Officer Tools','Officer-only chapter administration tools.','Officer permissions will be added when sign-in is connected.']
-];function openSection(i){document.getElementById('sectionTitle').textContent=data[i][0];document.getElementById('sectionText').textContent=data[i][1];document.getElementById('sectionExample').textContent=data[i][2];document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';window.scrollTo(0,0)}function goBack(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block';window.scrollTo(0,0)}
+['Officer Tools','Officer-only chapter administration tools.','Officer permissions and management features are still being developed.']
+];
+function goBack(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block'}
+function openSection(i){document.getElementById('sectionTitle').textContent=data[i][0];document.getElementById('sectionText').textContent=data[i][1];document.getElementById('sectionExample').textContent=data[i][2];document.getElementById('officerAdmin').style.display=i===5&&admin?'block':'none';document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';window.scrollTo(0,0)}
+function signedOut(message=''){admin=false;app.style.display='none';login.style.display='block';logout.hidden=true;goBack();status.textContent=message}
+async function refresh(session){if(!session){signedOut();return}try{const {data:result,error}=await db.rpc('is_app_admin');if(error)throw error;admin=result===true;if(!admin){await db.auth.signOut();signedOut('This account has not been approved for app access. Contact the chapter president.');return}login.style.display='none';app.style.display='block';logout.hidden=false;status.textContent=''}catch(e){signedOut('Unable to verify access. Please contact the chapter administrator.');console.error('Access verification failed:',e.message)}}
+async function init(){if(!window.supabase){signedOut('Unable to load the sign-in service. Check your connection and refresh.');return}db=window.supabase.createClient(URL,KEY);const {data:{session},error}=await db.auth.getSession();if(error){signedOut('Could not check your sign-in session.');return}await refresh(session);db.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')signedOut();else if(event==='SIGNED_IN')setTimeout(()=>refresh(session),0)})}
+document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const btn=document.getElementById('signin');btn.disabled=true;status.textContent='Signing in…';try{const {data,error}=await db.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});if(error)throw error;document.getElementById('password').value='';await refresh(data.session)}catch(err){status.textContent='Sign-in failed. Check your email and password.'}finally{btn.disabled=false}});
+logout.addEventListener('click',async()=>{if(db)await db.auth.signOut();signedOut()});
+init();
 </script></body></html>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  window.ryderzDB = window.supabase.createClient(
-    'https://cfqafjcdbnekufijmlco.supabase.co',
-    'sb_publishable_ipaK8g52meOFsUyh9IFTEQ_lgnIn5m8'
-  );
-</script>
-</body>
-</html>
