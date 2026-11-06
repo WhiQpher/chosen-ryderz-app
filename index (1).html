@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chosen Ryderz MC</title>
+<style>
+:root{--bg:#080e0a;--panel:#183020;--fg:#f5fff6;--accent:#6aeb8a}body.day{--bg:#edf7ee;--panel:#fff;--fg:#142519;--accent:#167c38}body.steel{--bg:#131b23;--panel:#283847;--fg:#fff;--accent:#8de3a4}*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:17px system-ui,Arial;margin:0}.wrap{max-width:550px;margin:auto;padding:18px}h1{font-size:27px;margin:22px 0 6px}.sub{opacity:.75;margin-bottom:22px}.tile{display:block;width:100%;padding:22px 18px;margin:12px 0;border-radius:16px;background:var(--panel);color:var(--fg);border:1px solid var(--accent);text-align:left;font:700 20px system-ui;cursor:pointer}.tile small{display:block;font-size:14px;font-weight:400;margin:7px 0 0;opacity:.8}.panel{background:var(--panel);border-radius:14px;padding:18px;margin:15px 0;line-height:1.5}.back,.action{background:var(--accent);color:#09200f;border:0;padding:12px;border-radius:9px;font-weight:700;cursor:pointer}.action{margin:8px 8px 8px 0}.action:disabled{opacity:.5;cursor:wait}select,input{background:var(--panel);color:var(--fg);border:1px solid var(--accent);padding:12px;border-radius:9px;width:100%;font:inherit;margin:6px 0 14px}select{width:auto}label{display:block}a{color:var(--accent)}.hidden{display:none!important}.note{font-size:13px;opacity:.75;margin:24px 0}#status{min-height:1.5em}#status.error{color:#ffb6b6}
+</style></head><body><div class="wrap"><div style="font-weight:900;color:var(--accent);letter-spacing:1px">🏍 CHOSEN RYDERZ MC</div><h1>Welcome, Ryder</h1><div class="sub">Brandywine Chapter · Member Portal</div>
+<div id="status" role="status" aria-live="polite"></div>
+<section id="login" class="panel hidden"><h2>Member Sign In</h2><form id="loginForm"><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button class="action" type="submit">Sign In</button></form><button class="action" id="forgot" type="button">Forgot Password?</button><p class="note">Accounts are created and approved by chapter administrators. Public registration is unavailable.</p></section>
+<section id="reset" class="panel hidden"><h2>Create New Password</h2><p>Choose a new password for your Chosen Ryderz account.</p><form id="resetForm"><label>New password<input id="newPassword" type="password" minlength="12" autocomplete="new-password" required></label><label>Confirm new password<input id="confirmPassword" type="password" minlength="12" autocomplete="new-password" required></label><button class="action" type="submit">Save New Password</button></form></section>
+<section id="home" class="hidden"><h2>Chapter Dashboard</h2><p id="signedInAs"></p><button class="action" id="signOut" type="button">Sign Out</button>
+<button class="tile" data-section="0">👥 Membership<small>Members and chapter roster</small></button><button class="tile" data-section="1">💳 Dues<small>Membership dues and status</small></button><button class="tile" data-section="2">📅 Events<small>Rides, meetings, and activities</small></button><button class="tile" data-section="3">📣 Announcements<small>Latest chapter updates</small></button><button class="tile" data-section="4">📁 Documents<small>Bylaws, forms, and files</small></button><button class="tile" data-section="5">🛡️ Officer Tools<small>Chapter management</small></button>
+<div class="panel">Appearance: <select id="theme"><option value="">Night Ride</option><option value="day">Day Ride</option><option value="steel">Steel Ride</option></select></div></section>
+<section id="detail" class="hidden"><button class="back" id="back" type="button">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div></section>
+<div class="note">Development preview: dashboard tiles contain sample information. Payments, member editing, and officer controls are not yet connected.</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+// The publishable/anon key is safe in browser code. Never insert a service_role or secret key.
+const SUPABASE_URL='https://cfqafjcdbnekufijmlco.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ipaK8g52meOFsUyh9IFTEQ_lgnIn5m8';
+const els={login:document.getElementById('login'),reset:document.getElementById('reset'),home:document.getElementById('home'),detail:document.getElementById('detail'),status:document.getElementById('status')};
+const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{detectSessionInUrl:true,autoRefreshToken:true,persistSession:true}});
+let recovering=false;
+const data=[['Membership','View chapter roster, road names, and membership status.','Sample roster: President · Vice President · Secretary/Treasurer · Sergeant at Arms · Road Captain · Public Relations Officer'],['Dues','Track membership dues and payment status.','Demo only — no actual payments.'],['Events','Plan club rides, meetings, and activities.','Sample: Saturday chapter ride · 10 AM · Meeting location TBD'],['Announcements','Share news and updates with chapter members.','Welcome to the Chosen Ryderz MC app preview!'],['Documents','Keep bylaws, forms, and chapter files together.','Sample folders: Bylaws · Meeting Notes · Forms'],['Officer Tools','Officer-only chapter administration tools.','Officer editing permissions and tools are not yet implemented.']];
+function show(name){for(const [key,el] of Object.entries(els))if(key!=='status')el.classList.toggle('hidden',key!==name);}
+function message(s,error=false){els.status.textContent=s;els.status.classList.toggle('error',error);}
+function cleanUrl(){if(location.hash||location.search){history.replaceState(null,'',location.pathname);}}
+async function isAuthorized(user){
+  // Access is denied by default. RLS policies must restrict this table to admins or the user's own row.
+  const {data:admin,error:adminError}=await db.from('app_admins').select('user_id').eq('user_id',user.id).maybeSingle();
+  if(adminError)throw new Error('Unable to verify administrator access. Check the app_admins table and its RLS policies.');
+  if(admin)return true;
+  // No ordinary member authorization is granted yet. Future member approvals require a verified schema and RLS.
+  return false;
+}
+async function displaySession(){if(recovering)return;show('login');if(!db){message('Unable to load the authentication service. Check your connection and reload.',true);return;}const {data:{user},error}=await db.auth.getUser();if(error||!user){message('');return;}try{if(!await isAuthorized(user)){message('Your account is signed in but is not yet authorized for the dashboard. Contact the chapter president.',true);return;}document.getElementById('signedInAs').textContent='Signed in as '+(user.email||'member');message('');show('home');}catch(e){message(e.message,true);}}
+function enterRecovery(){recovering=true;message('Enter and confirm your new password.');show('reset');}
+if(db){
+ db.auth.onAuthStateChange((event)=>{
+   if(event==='PASSWORD_RECOVERY'){enterRecovery();return;}
+   if(event==='SIGNED_OUT'){recovering=false;show('login');message('Signed out.');return;}
+   if(event==='SIGNED_IN'&&!recovering){setTimeout(displaySession,0);}
+ });
+ // A recovery link may have been redirected through a URL fragment or PKCE code.
+ // Wait for Supabase to process it before displaying an existing session.
+ const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));
+ const recoveryHint=params.get('type')==='recovery'||hash.get('type')==='recovery';
+ const authError=params.get('error_description')||hash.get('error_description');
+ if(authError){show('login');message(decodeURIComponent(authError.replace(/\+/g,' ')),true);}
+ else if(recoveryHint){enterRecovery();}
+ else{show('login');setTimeout(displaySession,700);}
+}else{show('login');message('Supabase authentication could not load.',true);}
+document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const button=e.submitter;button.disabled=true;message('Signing in…');const {error}=await db.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});document.getElementById('password').value='';button.disabled=false;if(error)message(error.message,true);else await displaySession();});
+document.getElementById('forgot').addEventListener('click',async()=>{if(!db)return;const email=document.getElementById('email').value.trim();if(!email){message('Enter your email address above, then choose Forgot Password.',true);return;}const redirectTo=location.origin+location.pathname;message('Requesting password recovery email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});message(error?'Unable to send recovery email: '+error.message:'If the email belongs to an account, a recovery link has been requested. Check your inbox.',!!error);});
+document.getElementById('resetForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const pass=document.getElementById('newPassword').value,confirm=document.getElementById('confirmPassword').value;if(pass!==confirm){message('The passwords do not match.',true);return;}const button=e.submitter;button.disabled=true;message('Saving your new password…');const {error}=await db.auth.updateUser({password:pass});button.disabled=false;if(error){message('Password could not be changed: '+error.message,true);return;}document.getElementById('newPassword').value='';document.getElementById('confirmPassword').value='';recovering=false;cleanUrl();message('Password updated successfully.');await displaySession();});
+document.getElementById('signOut').addEventListener('click',async()=>{if(!db)return;const {error}=await db.auth.signOut();if(error)message(error.message,true);});
+document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>{const d=data[Number(b.dataset.section)];document.getElementById('sectionTitle').textContent=d[0];document.getElementById('sectionText').textContent=d[1];document.getElementById('sectionExample').textContent=d[2];show('detail');scrollTo(0,0);}));
+document.getElementById('back').addEventListener('click',()=>{show('home');scrollTo(0,0);});
+document.getElementById('theme').addEventListener('change',e=>{document.body.className=e.target.value;});
+</script></body></html>
