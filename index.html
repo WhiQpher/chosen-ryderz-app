@@ -1,3 +1,4 @@
+```
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chosen Ryderz MC</title>
 <style>
@@ -9,8 +10,8 @@
 <section id="home" class="hidden"><h2>Chapter Dashboard</h2><p id="signedInAs"></p><button class="action" id="signOut" type="button">Sign Out</button>
 <button class="tile" data-section="0">👥 Membership<small>Members and chapter roster</small></button><button class="tile" data-section="1">💳 Dues<small>Membership dues and status</small></button><button class="tile" data-section="2">📅 Events<small>Rides, meetings, and activities</small></button><button class="tile" data-section="3">📣 Announcements<small>Latest chapter updates</small></button><button class="tile" data-section="4">📁 Documents<small>Bylaws, forms, and files</small></button><button class="tile" data-section="5">🛡️ Officer Tools<small>Chapter management</small></button>
 <div class="panel">Appearance: <select id="theme"><option value="">Night Ride</option><option value="day">Day Ride</option><option value="steel">Steel Ride</option></select></div></section>
-<section id="detail" class="hidden"><button class="back" id="back" type="button">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div></section>
-<div class="note">Development preview: dashboard tiles contain sample information. Payments, member editing, and officer controls are not yet connected.</div></div>
+<section id="detail" class="hidden"><button class="back" id="back" type="button">← Back to all six tiles</button><h1 id="sectionTitle"></h1><div class="panel" id="sectionText"></div><div class="panel" id="sectionExample"></div><div id="memberTools" class="panel hidden"><h3>Chapter roster</h3><div id="roster"></div><h3>Add member profile</h3><form id="memberForm"><label>Full name<input id="memberName" required></label><label>Road name<input id="roadName"></label><label>Authentication user ID (UUID)<input id="memberUid" required placeholder="Existing Supabase Auth user ID"></label><label>Officer title<input id="officerTitle"></label><label>Membership status<input id="memberStatus" value="pending"></label><button class="action" type="submit">Save profile</button></form><p class="note">Requires an existing Supabase Auth user and permitted database policies. This form does not create login accounts or approve access.</p></div></section>
+<div class="note">Member profiles use Supabase when authorized. Dues, events, announcements, documents and officer controls still require secure database integration. No payments are processed.</div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 'use strict';
@@ -20,7 +21,7 @@ const SUPABASE_PUBLISHABLE_KEY='sb_publishable_ipaK8g52meOFsUyh9IFTEQ_lgnIn5m8';
 const els={login:document.getElementById('login'),reset:document.getElementById('reset'),home:document.getElementById('home'),detail:document.getElementById('detail'),status:document.getElementById('status')};
 const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{detectSessionInUrl:true,autoRefreshToken:true,persistSession:true}});
 let recovering=false;
-const data=[['Membership','View chapter roster, road names, and membership status.','Sample roster: President · Vice President · Secretary/Treasurer · Sergeant at Arms · Road Captain · Public Relations Officer'],['Dues','Track membership dues and payment status.','Demo only — no actual payments.'],['Events','Plan club rides, meetings, and activities.','Sample: Saturday chapter ride · 10 AM · Meeting location TBD'],['Announcements','Share news and updates with chapter members.','Welcome to the Chosen Ryderz MC app preview!'],['Documents','Keep bylaws, forms, and chapter files together.','Sample folders: Bylaws · Meeting Notes · Forms'],['Officer Tools','Officer-only chapter administration tools.','Officer editing permissions and tools are not yet implemented.']];
+const data=[['Membership','View chapter roster, road names, and membership status.','Loading member profiles…'],['Dues','Track membership dues and payment status.','Demo only — no actual payments.'],['Events','Plan club rides, meetings, and activities.','Sample: Saturday chapter ride · 10 AM · Meeting location TBD'],['Announcements','Share news and updates with chapter members.','Welcome to the Chosen Ryderz MC app preview!'],['Documents','Keep bylaws, forms, and chapter files together.','Sample folders: Bylaws · Meeting Notes · Forms'],['Officer Tools','Officer-only chapter administration tools.','Officer editing permissions and tools are not yet implemented.']];
 function show(name){for(const [key,el] of Object.entries(els))if(key!=='status')el.classList.toggle('hidden',key!==name);}
 function message(s,error=false){els.status.textContent=s;els.status.classList.toggle('error',error);}
 function cleanUrl(){if(location.hash||location.search){history.replaceState(null,'',location.pathname);}}
@@ -53,7 +54,35 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{e.preve
 document.getElementById('forgot').addEventListener('click',async()=>{if(!db)return;const email=document.getElementById('email').value.trim();if(!email){message('Enter your email address above, then choose Forgot Password.',true);return;}const redirectTo=location.origin+location.pathname;message('Requesting password recovery email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});message(error?'Unable to send recovery email: '+error.message:'If the email belongs to an account, a recovery link has been requested. Check your inbox.',!!error);});
 document.getElementById('resetForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const pass=document.getElementById('newPassword').value,confirm=document.getElementById('confirmPassword').value;if(pass!==confirm){message('The passwords do not match.',true);return;}const button=e.submitter;button.disabled=true;message('Saving your new password…');const {error}=await db.auth.updateUser({password:pass});button.disabled=false;if(error){message('Password could not be changed: '+error.message,true);return;}document.getElementById('newPassword').value='';document.getElementById('confirmPassword').value='';recovering=false;cleanUrl();message('Password updated successfully.');await displaySession();});
 document.getElementById('signOut').addEventListener('click',async()=>{if(!db)return;const {error}=await db.auth.signOut();if(error)message(error.message,true);});
-document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>{const d=data[Number(b.dataset.section)];document.getElementById('sectionTitle').textContent=d[0];document.getElementById('sectionText').textContent=d[1];document.getElementById('sectionExample').textContent=d[2];show('detail');scrollTo(0,0);}));
+document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',async()=>{const n=Number(b.dataset.section);const d=data[n];document.getElementById('sectionTitle').textContent=d[0];document.getElementById('sectionText').textContent=d[1];document.getElementById('sectionExample').textContent=d[2];show('detail');document.getElementById('memberTools').classList.toggle('hidden',n!==0);if(n===0)await loadRoster();scrollTo(0,0);}));
+
+function safeText(value){return String(value??'');}
+async function loadRoster(){
+ const out=document.getElementById('roster');out.textContent='Loading…';
+ const {data:rows,error}=await db.from('member_profiles').select('id,uid,full_name,road_name,chapter,officer_title,membership_status').eq('chapter','Brandywine').order('full_name');
+ if(error){out.textContent='Could not load roster: '+error.message;return;}
+ out.replaceChildren();
+ if(!rows?.length){out.textContent='No Brandywine member profiles found.';return;}
+ for(const row of rows){
+  const item=document.createElement('div');item.style.margin='12px 0';
+  const name=document.createElement('strong');name.textContent=safeText(row.road_name||row.full_name||'Unnamed member');
+  const detail=document.createElement('div');detail.textContent=[row.full_name,row.officer_title,row.membership_status].filter(Boolean).join(' · ');
+  item.append(name,detail);out.append(item);
+ }
+}
+document.getElementById('memberForm').addEventListener('submit',async e=>{
+ e.preventDefault();const button=e.submitter;button.disabled=true;
+ const uid=document.getElementById('memberUid').value.trim();
+ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ if(!uuid.test(uid)){message('Enter a valid existing Auth user UUID.',true);button.disabled=false;return;}
+ const payload={uid,full_name:document.getElementById('memberName').value.trim(),road_name:document.getElementById('roadName').value.trim(),chapter:'Brandywine',officer_title:document.getElementById('officerTitle').value.trim(),membership_status:document.getElementById('memberStatus').value.trim()};
+ const {error}=await db.from('member_profiles').insert(payload);
+ button.disabled=false;
+ if(error){message('Profile not saved: '+error.message,true);return;}
+ message('Member profile saved. This does not grant app login access.');e.target.reset();await loadRoster();
+});
+
 document.getElementById('back').addEventListener('click',()=>{show('home');scrollTo(0,0);});
 document.getElementById('theme').addEventListener('change',e=>{document.body.className=e.target.value;});
 </script></body></html>
+```
